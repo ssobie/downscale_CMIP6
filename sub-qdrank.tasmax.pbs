@@ -1,0 +1,31 @@
+#!/bin/bash
+#PBS -l walltime=24:00:00
+#PBS -l nodes=1:ppn=1
+#PBS -l pmem=5000Mb
+#PBS -t 5-51
+#PBS -d /storage/home/ssobie/code/repos/downscale_CMIP6/
+#PBS -o output=./CanESM5-tasmax-r1i1p2f1-qdrank.out
+#PBS -e error=./CanESM5-tasmax-r1i1p2f1-qdrank.err
+#PBS -N qdrank.can.r1i
+
+cd /storage/home/ssobie/code/repos/downscale_CMIP6/
+echo "Current working directory is `pwd`"
+
+gcm="CanESM5"
+run="r1i1p2f1"
+scenario="ssp585"
+
+varname="tasmax"
+obsdir="/storage/data/climate/observations/gridded/ANUSPLIN/ANUSPLIN_300ARCSEC/anusplin_tasmax_split/"
+bccidir="/storage/data/climate/downscale/BCCAQ2/BCCI/CanESM5_split/"
+bccadir="/storage/data/climate/downscale/BCCAQ2/BCCA/"
+bccafile="CanESM5.tasmax.ssp585.r1i1p2f1.Canada.analogues.RData"
+writedir="/storage/data/climate/downscale/BCCAQ2/raw_downscaled/"
+
+obsfile=$(find $obsdir -maxdepth 1 -type f -name "anusplin_"$varname'*.nc' -execdir basename {} \; | sort | sed -n ${PBS_ARRAYID}p)
+bccifile=$(find $bccidir -maxdepth 1 -type f -name $varname'*.nc' -execdir basename {} \; | sort | sed -n ${PBS_ARRAYID}p)
+
+echo $obsfile
+echo $bccifile
+
+R CMD BATCH --no-restore --no-save "--args tmpdir='/local_temp/ssobie/' varname='$varname' gcm='$gcm' obsfile='$obsfile' obsdir='$obsdir' bccidir='$bccidir' bccifile='$bccifile' bccadir='$bccadir' bccafile='$bccafile' writedir='$writedir'" qdm.and.rank.r "./${gcm}.${varname}.${scenario}.${run}.qdm.and.rank.${PBS_ARRAYID}.out"

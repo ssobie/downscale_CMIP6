@@ -1,0 +1,26 @@
+#!/bin/bash
+#PBS -l walltime=12:00:00
+#PBS -l nodes=1:ppn=4
+#PBS -l pmem=4000Mb
+#PBS -d /storage/home/ssobie/code/repos/downscale_CMIP6/
+#PBS -o output=./out_files/CanESM5-pr-r10i1p2f1-bcca.out
+#PBS -e error=./out_files/CanESM5-pr-r10i1p2f1-bcca.err
+#PBS -N bcca.can.r10
+
+
+cd /storage/home/ssobie/code/repos/downscale_CMIP6/
+echo "Current working directory is `pwd`"
+
+gcm="CanESM5"
+run="r10i1p2f1"
+scenario="ssp245"
+
+varname="pr"
+gcmfile="pr_day_CanESM5_North_America_historical+ssp245_r10i1p2f1_gn_19500101-21001231.nc"
+gcmdir="/storage/data/climate/CMIP6/assembled/CanESM5/north_america/"
+obsfile="anusplin_pr_final.nc"
+obsdir="/storage/data/climate/observations/gridded/ANUSPLIN/ANUSPLIN_300ARCSEC/"
+bccafile="CanESM5.pr.ssp245.r10i1p2f1.Canada.analogues.RData"
+writedir="/storage/data/climate/downscale/BCCAQ2/BCCA/"
+
+R CMD BATCH "--args tmpdir='/local_temp/ssobie/' gcm='$gcm' scenario='$scenario' varname='$varname' gcmfile='$gcmfile' gcmdir='$gcmdir' obsfile='$obsfile' obsdir='$obsdir' bccafile='$bccafile' writedir='$writedir'" bcca.script.r "./${gcm}.${varname}.${scenario}.${run}.bcca.out"

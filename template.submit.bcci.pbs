@@ -1,0 +1,26 @@
+#!/bin/bash
+#PBS -l walltime=12:00:00
+#PBS -l nodes=1:ppn=1
+#PBS -l pmem=10000Mb
+#PBS -d /storage/home/ssobie/code/repos/downscale_CMIP6/
+#PBS -o output=gcm_bcci_var.out
+#PBS -e error=gcm_bcci_var.err
+#PBS -N jobname
+
+
+cd /storage/home/ssobie/code/repos/downscale_CMIP6/
+echo "Current working directory is `pwd`"
+
+gcm="GCM"
+run="run"
+scenario="scenario"
+
+varname="var"
+gcmfile="GCM"
+gcmdir="DIR"
+obsfile="OBS"
+obsdir="DIR"
+bccifile="BCCI"
+writedir="DIR"
+
+R CMD BATCH "--args tmpdir='/local_temp/ssobie/' varname='$varname' gcm='$gcm' gcmfile='$gcmfile' gcmdir='$gcmdir' obsfile='$obsfile' obsdir='$obsdir' bccifile='$bccifile' writedir='$writedir'" bcci.and.divide.r "./${gcm}.${varname}.${scenario}.${run}.bcci.out"
