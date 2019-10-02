@@ -44,12 +44,15 @@ writedir <- '/storage/data/climate/downscale/BCCAQ2/'
 ##---------------------------------------------------------------------------
 
 gcm.list <- 'CanESM5'
-scenario <- 'ssp245'
+scenario <- 'ssp585'
 ## ##)##,
 
-run.list <- c('r1i1p2f1','r2i1p2f1','r3i1p2f1','r4i1p2f1','r5i1p2f1',
-              'r6i1p2f1','r7i1p2f1','r8i1p2f1','r9i1p2f1','r10i1p2f1')
-var.list <- c('pr','tasmax','tasmin')
+
+##run.list <- c('r1i1p2f1','r2i1p2f1','r3i1p2f1','r4i1p2f1','r5i1p2f1',
+##              'r6i1p2f1','r7i1p2f1','r8i1p2f1','r9i1p2f1','r10i1p2f1')
+run.list <- 'r1i1p2f1'### c('r4i1p2f1','r5i1p2f1',
+              ###'r6i1p2f1','r7i1p2f1','r8i1p2f1','r9i1p2f1','r10i1p2f1')
+var.list <- c('pr','tasmin') ##'tasmax',
 
 ##---------------------------------------------------------------------------
 
@@ -65,18 +68,18 @@ for (var.name in var.list) {
          gcm.pattern <- paste0(var.name,'_day_',gcm,'_North_America_historical\\+',scenario,'_',run,'*')
          gcm.file <- list.files(path=gcmdir,pattern=gcm.pattern)
 
-         ##bcci.file <- gsub(var.name,paste0(var.name,'_BCCI'),gcm.file)
-         ##submit_bccs_job(var.name,gcm,run,scenario,'bcci',
-         ##                gcm.file,obs.file,bcci.file,
-         ##                gcmdir,obsdir,writedir,   
-         ##                bcci.template)
+         bcci.file <- gsub(var.name,paste0(var.name,'_BCCI'),gcm.file)
+         submit_bccs_job(var.name,gcm,run,scenario,'bcci',
+                         gcm.file,obs.file,bcci.file,
+                         gcmdir,obsdir,writedir,   
+                         bcci.template)
 
          bcca.file <- paste(gcm,'.',var.name,'.',scenario,'.',run,'.Canada.analogues.RData',sep='')
 
-         submit_bccs_job(var.name,gcm,run,scenario,'bcca',
-                         gcm.file,obs.file,bcca.file,
-                         gcmdir,obsdir,writedir,   
-                         bcca.template)
+         ##submit_bccs_job(var.name,gcm,run,scenario,'bcca',
+         ##                gcm.file,obs.file,bcca.file,
+         ##                gcmdir,obsdir,writedir,   
+         ##                bcca.template)
       }
    }
 }

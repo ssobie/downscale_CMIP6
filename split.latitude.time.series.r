@@ -85,11 +85,11 @@ make_subset_file <- function(nc,var.name,lat.ix,split.dir,split.file) {
 
 ##------------------------------------------------------------------------------
 
-split.into.lat.band <- function(bcci.nc,
-		                var.name,
-				lat.ix,lat.st,lat.en,lat.cnt,
-				split.file,
-				split.dir) {
+split_into_lat_band <- function(bcci.nc,
+		                  var.name,
+		    		  lat.ix,lat.st,lat.en,lat.cnt,
+		  		  split.file,
+		    		  split.dir) {
 
   bcci.band <- ncvar_get(bcci.nc,var.name,start=c(1,lat.st,1),count=c(-1,lat.cnt,-1))
   make_subset_file(bcci.nc,var.name,lat.ix,split.dir,split.file)
@@ -104,17 +104,17 @@ split_apart_bcci_file <- function(var.name,gcm,bccifile,
                                   tmp.dir,write.dir) {
 
    bcci.nc <- nc_open(paste0(tmp.dir,bccifile))
-   split.dir <- paste0(tmp.dir,gcm,'_split/')
+   split.dir <- paste0(tmp.dir,var.name,'_',gcm,'_',run,'_',scenario,'_split15/')
    if (!file.exists(split.dir)) {
       dir.create(split.dir,recursive=T)
    }
 
    ##Divide up the BCCI latitude (510 total) into 10-cell bands:
    ###splits <- rep(1:51,each=10)
-   ##Divide up the BCCI latitude (510 total) into 25-cell bands:
-   splits <- rep(1:30,each=17)
+   ##Divide up the BCCI latitude (510 total) into 15-cell bands:
+   splits <- rep(1:34,each=15)
 
-   for (i in 1:17) {
+   for (i in 1:34) {
       lat.ix <- which(splits %in% i)
       
       lat.st <- lat.ix[1]
@@ -125,7 +125,7 @@ split_apart_bcci_file <- function(var.name,gcm,bccifile,
        	                 paste0(var.name,'_L',sprintf('%02d',i),'_',sprintf('%02d',lat.st),'-',sprintf('%02d',lat.en)),
 	     	         bccifile)
 
-      split.into.lat.band(bcci.nc,var.name,
+      split_into_lat_band(bcci.nc,var.name,
                           lat.ix,lat.st,lat.en,lat.cnt,
                           split.file,split.dir)
    }
@@ -139,9 +139,16 @@ split_apart_bcci_file <- function(var.name,gcm,bccifile,
 
 
 ##Testing
+if (1==1) {
+scenario <- 'ssp585'
+run <- 'r7i1p2f1'
+##If the past two runs complete and delete the tmp files correctly, set this as a loop to run
+##over all the outstanding files.
+
 var.name <- 'tasmax'
 gcm <- 'CanESM5'
-bccifile <- 'tasmax_BCCI_day_CanESM5_North_America_historical+ssp585_r1i1p2f1_gn_19500101-21001231.nc'
+##gcm <- 'ANUSPLIN'
+bccifile <- paste0(var.name,'_BCCI_day_',gcm,'_North_America_historical+',scenario,'_',run,'_gn_19500101-21001231.nc')
 ##bccifile <- 'anusplin_tasmax_final.nc'
 tmp.dir <- '/local_temp/ssobie/bcci_split/'
 ##tmp.dir <- '/local_temp/ssobie/obs_split/'
@@ -149,11 +156,14 @@ write.dir <- '/storage/data/climate/downscale/BCCAQ2/BCCI/'
 ##write.dir <- '/storage/data/climate/observations/gridded/ANUSPLIN/ANUSPLIN_300ARCSEC/anusplin_tasmax_split/'
 
 
+work <- paste0('rsync -av --progress /storage/data/climate/downscale/BCCAQ2/BCCI/',bccifile,' ',tmp.dir)
+system(work)
+Sys.sleep(5)
+
 split_apart_bcci_file(var.name,gcm,bccifile,
                       tmp.dir,write.dir)
 
- 
-
+}
 
 
 print('Elapsed time')

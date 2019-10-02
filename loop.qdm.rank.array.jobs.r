@@ -37,16 +37,15 @@ submit_qdm_rank_job <- function(var.name,gcm,run,scenario,type,
 ##---------------------------------------------------------------------------
 
 obsdir <- '/storage/data/climate/observations/gridded/ANUSPLIN/ANUSPLIN_300ARCSEC/anusplin_tasmax_split/'
-bccidir <- '/storage/data/climate/downscale/BCCAQ2/BCCI/CanESM5_split/'
 bccadir <- '/storage/data/climate/downscale/BCCAQ2/BCCA/'
-writedir <- '/storage/data/climate/downscale/BCCAQ2/raw_downscaled/'
+
 
 ##---------------------------------------------------------------------------
 
 gcm.list <- 'CanESM5'
 scenario <- 'ssp585'
 ## ##,
-run.list <- c('r1i1p2f1') ##,'r2i1p2f1')##,'r3i1p2f1','r4i1p2f1','r5i1p2f1',
+run.list <- c('r9i1p2f1') ##,'r2i1p2f1')##,'r3i1p2f1','r4i1p2f1','r5i1p2f1',
 ##              'r6i1p2f1','r7i1p2f1','r8i1p2f1','r9i1p2f1','r10i1p2f1')
 var.list <- 'tasmax'
 
@@ -60,6 +59,11 @@ for (var.name in var.list) {
    obs.file <- list.files(path=obsdir,pattern=var.name)
    for (gcm in gcm.list) {
       for (run in run.list) {              
+         bccidir <- paste0('/storage/data/climate/downscale/BCCAQ2/BCCI/',var.name,'_',gcm,'_',run,'_',scenario,'_split15/')
+         writedir <- paste0('/storage/data/climate/downscale/BCCAQ2/raw_downscaled/ds_',var.name,'_',gcm,'_',run,'_',scenario,'_split15/')
+         if (!file.exists(writedir)) {
+            dir.create(writedir,recursive=TRUE)
+         }
          bccafile <- paste(gcm,'.',var.name,'.',scenario,'.',run,'.Canada.analogues.RData',sep='')
 
          submit_qdm_rank_job(var.name,gcm,run,scenario,'qdrank',

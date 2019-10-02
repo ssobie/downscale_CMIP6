@@ -18,7 +18,8 @@ options(max.GB=1)
 options(calibration.start=as.POSIXct('1950-01-01', tz='GMT'))
 options(calibration.end=as.POSIXct('2014-12-31', tz='GMT'))
 
-tmpdir <- paste0(tmpdir,'/qdrank_',gcm,'_',varname,'_tmp')
+tmpdir <- paste0(tmpdir,'/qdrank_',gcm,'_',varname,'_',run,'_',scenario,'_tmp')
+
 if (!file.exists(tmpdir)) {
    dir.create(tmpdir,recursive=TRUE)
 }

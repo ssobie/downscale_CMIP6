@@ -70,7 +70,7 @@ get_standard_atts <- function(var.name) {
 ##gcm is the gcm name e.g. ACCESS1-0
 ##drive.institute is the centre e.g. CSIRO-BOM
 ##ssp is the SSP as SSP5 8.5
-get_global_atts <- function(gcm,gcm.nc,ssp,run) {
+get_global_atts <- function(gcm.nc,ssp,run) {
 
   gcm.glob.atts <- ncatt_get(gcm.nc,0)
 
@@ -98,10 +98,10 @@ get_global_atts <- function(gcm,gcm.nc,ssp,run) {
                    driving_forcing_index=gcm.glob.atts$forcing_index,
                    driving_grid=gcm.glob.atts$grid,
                    driving_grid_label=gcm.glob.atts$grid_label,
-                   driving_further_url_info=gcm.glob.atts$further_url_info,
-                   driving_institution = gcm.glob.atts$intitution, ##Full name
-                   driving_institute_id = gcm.glob.atts$institute_id, ##Acronym
-                   driving_model_id = gcm,
+                   driving_further_url_info=gcm.glob.atts$further_info_url,
+                   driving_institution = gcm.glob.atts$institution, ##Full name
+                   driving_institute_id = gcm.glob.atts$institution_id, ##Acronym
+                   driving_model_id = gcm.glob.atts$source_id,
                    driving_nominal_resolution=gcm.glob.atts$nominal_resolution,
                    driving_realization_index = substr(run,2,2), ##These integers are from the 'r1i1p1' code
                    driving_initialization_index=substr(run,4,4),
@@ -122,55 +122,49 @@ get_global_atts <- function(gcm,gcm.nc,ssp,run) {
 
 ##Filename format is: 'pr_day_BCCAQ2+ANUSPLIN300+ACCESS1-0_historical+rcp45_r1i1p1_19500101-21001231.nc'
 
-add.attributes.ncdf <- function(var.name, qdm.nc, gcm.nc,global.atts,sub.time) {
+add_attributes_ncdf <- function(var.name, ds.nc, gcm.nc,global.atts) {
 
-  atts <- get.standard.atts(var.name)
+  atts <- get_standard_atts(var.name)
   print('Lon names')
   lon.names <- names(atts$lon)
   for (j in 1:length(atts$lon))
-    ncatt_put(qdm.nc,varid='lon',attname=lon.names[j],attval=atts$lon[[j]])
+    ncatt_put(ds.nc,varid='lon',attname=lon.names[j],attval=atts$lon[[j]])
   print('Lat names')
   lat.names <- names(atts$lat)
   for (j in 1:length(atts$lat))
-    ncatt_put(qdm.nc,varid='lat',attname=lat.names[j],attval=atts$lat[[j]])
+    ncatt_put(ds.nc,varid='lat',attname=lat.names[j],attval=atts$lat[[j]])
   print('Var names')
   var.names <- names(atts$var)
   for (j in 1:length(atts$var))
-    ncatt_put(qdm.nc,varid=var.name,attname=var.names[j],attval=atts$var[[j]])
+    ncatt_put(ds.nc,varid=var.name,attname=var.names[j],attval=atts$var[[j]])
   print('Time atts')
   ##Time attributes
-  ncatt_put(qdm.nc,varid='time',attname='units',attval=gcm.nc$dim$time$units)
-  ncatt_put(qdm.nc,varid='time',attname='long_name',attval='Time')
-  ncatt_put(qdm.nc,varid='time',attname='standard_name',attval='Time')
-  ncatt_put(qdm.nc,varid='time',attname='calendar',attval=gcm.nc$dim$time$calendar)
+  ncatt_put(ds.nc,varid='time',attname='units',attval=gcm.nc$dim$time$units)
+  ncatt_put(ds.nc,varid='time',attname='long_name',attval='Time')
+  ncatt_put(ds.nc,varid='time',attname='standard_name',attval='Time')
+  ncatt_put(ds.nc,varid='time',attname='calendar',attval=gcm.nc$dim$time$calendar)
   print('Global atts')
   ##Global Attributes
   global.names <- names(global.atts)
   for (g in 1:length(global.atts))
-    ncatt_put(qdm.nc,varid=0,attname=global.names[g],attval=global.atts[[g]])
+    ncatt_put(ds.nc,varid=0,attname=global.names[g],attval=global.atts[[g]])
+
+  ##Offset and scale attributes
+  scaling <- get_scaling(var.name)
+  ncatt_put(ds.nc,var.name,attname='add_offset',attval=scaling$offset,prec='double')
+  ncatt_put(ds.nc,var.name,attname='scale_factor',attval=scaling$scale,prec='double')
 
   ##Clear extraneous history
-  ncatt_put(qdm.nc,varid=0,attname='history',attval='')
-  nc_close(qdm.nc)  
+  ncatt_put(ds.nc,varid=0,attname='history',attval='')
 }
-
 
 ##**************************************************
 
-add.the.metadata <- function(gcm,var.name,rcp,run,out.nc) {
+add_the_metadata <- function(var.name,ssp,run,gcm.nc,ds.nc) {
 
-  gcm.dir  <- '/storage/data/climate/downscale/BCCAQ2/'
+  global.atts <- get_global_atts(gcm.nc,ssp,run)
 
-  obs.file <- paste(gcm.dir,'ANUSPLIN/anusplin_',var.name,'_final.nc',sep='')
-  gcm.file <- paste(gcm.dir,'CMIP5/',gcm,'/',var.name,'_day_',gcm,'_historical+',rcp,'_',run,'_19500101-21001231.nc',sep='')
-
-  gcm.nc <- nc_open(gcm.file)
-
-  global.atts <- get.global.atts(gcm,gcm.nc,rcp,run)
-
-  add.attributes.ncdf(var.name,out.nc,gcm.nc,global.atts,start.time)
-
-  nc_close(gcm.nc)
+  add_attributes_ncdf(var.name,ds.nc,gcm.nc,global.atts)
 
   print('Elapsed time')
   print(proc.time() - ptm)
