@@ -1,10 +1,10 @@
 #!/bin/bash
-#PBS -l walltime=12:00:00
-#PBS -l nodes=1:ppn=1
+#PBS -l walltime=24:00:00
+#PBS -l nodes=1:ppn=2
 #PBS -l pmem=10000Mb
 #PBS -d /storage/home/ssobie/code/repos/downscale_CMIP6/
-#PBS -o output=gcm_bcci_var.out
-#PBS -e error=gcm_bcci_var.err
+#PBS -o output=./out_files/gcm_bcci_var.out
+#PBS -e error=./out_files/gcm_bcci_var.err
 #PBS -N jobname
 
 
@@ -23,4 +23,4 @@ obsdir="DIR"
 bccifile="BCCI"
 writedir="DIR"
 
-R CMD BATCH "--args tmpdir='/local_temp/ssobie/' varname='$varname' gcm='$gcm' gcmfile='$gcmfile' gcmdir='$gcmdir' obsfile='$obsfile' obsdir='$obsdir' bccifile='$bccifile' writedir='$writedir'" bcci.and.divide.r "./${gcm}.${varname}.${scenario}.${run}.bcci.out"
+R CMD BATCH --no-save --no-restore "--args tmpdir='$TMPDIR' varname='$varname' gcm='$gcm' run='$run' scenario='$scenario' gcmfile='$gcmfile' gcmdir='$gcmdir' obsfile='$obsfile' obsdir='$obsdir' bccifile='$bccifile' writedir='$writedir'" bcci.and.divide.r "./out_files/${gcm}.${varname}.${scenario}.${run}.bcci.out"

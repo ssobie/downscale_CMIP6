@@ -3,8 +3,8 @@
 #PBS -l nodes=1:ppn=4
 #PBS -l pmem=4000Mb
 #PBS -d /storage/home/ssobie/code/repos/downscale_CMIP6/
-#PBS -o output=gcm_bcca_var.out
-#PBS -e error=gcm_bcca_var.err
+#PBS -o output=./out_files/gcm_bcca_var.out
+#PBS -e error=./out_files/gcm_bcca_var.err
 #PBS -N jobname
 
 
@@ -23,4 +23,4 @@ obsdir="DIR"
 bccafile="BCCA"
 writedir="DIR"
 
-R CMD BATCH "--args tmpdir='/local_temp/ssobie/' gcm='$gcm' scenario='$scenario' varname='$varname' gcmfile='$gcmfile' gcmdir='$gcmdir' obsfile='$obsfile' obsdir='$obsdir' bccafile='$bccafile' writedir='$writedir'" bcca.script.r "./${gcm}.${varname}.${scenario}.${run}.bcca.out"
+R CMD BATCH "--args tmpdir='/local_temp/ssobie/' gcm='$gcm' scenario='$scenario' varname='$varname' gcmfile='$gcmfile' gcmdir='$gcmdir' obsfile='$obsfile' obsdir='$obsdir' bccafile='$bccafile' writedir='$writedir'" bcca.script.r "./out_files/${gcm}.${varname}.${scenario}.${run}.bcca.out"

@@ -2,10 +2,10 @@
 #PBS -l walltime=24:00:00
 #PBS -l nodes=1:ppn=1
 #PBS -l pmem=5000Mb
-#PBS -t 5-51
+#PBS -t 1-34
 #PBS -d /storage/home/ssobie/code/repos/downscale_CMIP6/
-#PBS -o output=gcm_bcci_var.${PBS_ARRAYID}.out
-#PBS -e error=gcm_bcci_var.${PBS_ARRAYID}.err
+#PBS -o output=./out_files/gcm_bcci_var.${PBS_ARRAYID}.out
+#PBS -e error=./out_files/gcm_bcci_var.${PBS_ARRAYID}.err
 #PBS -N jobname
 
 cd /storage/home/ssobie/code/repos/downscale_CMIP6/
@@ -28,4 +28,4 @@ bccifile=$(find $bccidir -maxdepth 1 -type f -name $varname'*.nc' -execdir basen
 echo $obsfile
 echo $bccifile
 
-R CMD BATCH --no-restore --no-save "--args tmpdir='/local_temp/ssobie/' varname='$varname' gcm='$gcm' obsfile='$obsfile' obsdir='$obsdir' bccidir='$bccidir' bccifile='$bccifile' bccadir='$bccadir' bccafile='$bccafile' writedir='$writedir'" qdm.and.rank.r "./${gcm}.${varname}.${scenario}.${run}.qdm.and.rank.${PBS_ARRAYID}.out"
+R CMD BATCH --no-restore --no-save "--args tmpdir='$TMPDIR' varname='$varname' gcm='$gcm' run='$run' scenario='$scenario' obsfile='$obsfile' obsdir='$obsdir' bccidir='$bccidir' bccifile='$bccifile' bccadir='$bccadir' bccafile='$bccafile' writedir='$writedir'" qdm.and.rank.r "./out_files/${gcm}.${varname}.${scenario}.${run}.qdm.and.rank.${PBS_ARRAYID}.out"
