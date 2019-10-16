@@ -3,7 +3,7 @@
 
 library(hClimDown)
 
-source('/storage/home/ssobie/code/repos/downscale_CMIP6/split.latitude.time.series.r')
+###source('/storage/home/ssobie/code/repos/downscale_CMIP6/split.latitude.time.series.r')
 
 ##--------------------------------------------------------------
 
@@ -39,12 +39,11 @@ obs.tmp <- paste0(tmpdir,'/',obsfile)
 bcci.tmp <- paste0(tmpdir,'/',bccifile)
 
 ci.netcdf.wrapper(gcm.tmp, obs.tmp, bcci.tmp, varname)
-##file.copy(from=bcci.tmp,to=writedir,overwrite=TRUE)
+file.copy(from=bcci.tmp,to=writedir,overwrite=TRUE)
 print('BCCI Complete')
 
-print('Beginning BCCI Split')
-
-split_apart_bcci_file(varname,gcm,bccifile,tmpdir,writedir)
+##print('Beginning BCCI Split')
+##splitdir <- split_apart_bcci_file(varname,gcm,bccifile,tmpdir,writedir)
 
 print('Elapsed time')
 print(proc.time() - ptm)

@@ -93,9 +93,12 @@ split_into_lat_band <- function(bcci.nc,
 
   bcci.band <- ncvar_get(bcci.nc,var.name,start=c(1,lat.st,1),count=c(-1,lat.cnt,-1))
   make_subset_file(bcci.nc,var.name,lat.ix,split.dir,split.file)
+  print('Adding data')
   sub.nc <- nc_open(paste0(split.dir,split.file),write=TRUE)
   ncvar_put(sub.nc,var.name,bcci.band)
+  rm(bcci.band)
   nc_close(sub.nc)
+  gc()
 }
 
 ##------------------------------------------------------------
@@ -113,8 +116,9 @@ split_apart_bcci_file <- function(var.name,gcm,bccifile,
    ###splits <- rep(1:51,each=10)
    ##Divide up the BCCI latitude (510 total) into 15-cell bands:
    splits <- rep(1:34,each=15)
-
+   split.files <- rep('F',34)
    for (i in 1:34) {
+      
       lat.ix <- which(splits %in% i)
       
       lat.st <- lat.ix[1]
@@ -124,45 +128,61 @@ split_apart_bcci_file <- function(var.name,gcm,bccifile,
       split.file <- gsub(var.name,
        	                 paste0(var.name,'_L',sprintf('%02d',i),'_',sprintf('%02d',lat.st),'-',sprintf('%02d',lat.en)),
 	     	         bccifile)
-
+      split.files[i] <- split.file
       split_into_lat_band(bcci.nc,var.name,
                           lat.ix,lat.st,lat.en,lat.cnt,
                           split.file,split.dir)
+      ##print('Copying split file back from temp')
+      ##print(split.file)
+      ##file.copy(from=paste0(split.dir,split.file),to=write.dir,overwrite=TRUE)                   
    }
-   print('Copying split files back from temp')
+   print('Copy files to write dir')
    file.copy(from=split.dir,to=write.dir,recursive=TRUE,overwrite=TRUE)
-   nc_close(bcci.nc)    
-   file.remove(paste0(tmp.dir,bccifile))
    files.rm <- list.files(path=split.dir,full.name=T)
    file.remove(files.rm)
+   nc_close(bcci.nc)    
+   file.remove(paste0(tmp.dir,bccifile))
+
+   ###Modify to return the split directory and a list of the split files
+   ##rv <- list(dir=.dir,files=split.files)
+   ##return(rv)
+
 }
 
 
 ##Testing
 if (1==1) {
 scenario <- 'ssp585'
-run <- 'r7i1p2f1'
+##run <- 'r7i1p2f1'
+##c('r3i1p2f1','r4i1p2f1','r5i1p2f1','r6i1p2f1',
+runs <- c('r1i1p2f1','r2i1p2f1','r6i1p2f1') ##,'r8i1p2f1','r9i1p2f1','r10i1p2f1')
+
 ##If the past two runs complete and delete the tmp files correctly, set this as a loop to run
 ##over all the outstanding files.
 
-var.name <- 'tasmax'
+var.name <- 'tasmin'
 gcm <- 'CanESM5'
-##gcm <- 'ANUSPLIN'
-bccifile <- paste0(var.name,'_BCCI_day_',gcm,'_North_America_historical+',scenario,'_',run,'_gn_19500101-21001231.nc')
-##bccifile <- 'anusplin_tasmax_final.nc'
+###gcm <- 'ANUSPLIN'
+
+###bccifile <- 'anusplin_pr_final.nc'
 tmp.dir <- '/local_temp/ssobie/bcci_split/'
-##tmp.dir <- '/local_temp/ssobie/obs_split/'
+###tmp.dir <- '/local_temp/ssobie/obs_split/'
 write.dir <- '/storage/data/climate/downscale/BCCAQ2/BCCI/'
-##write.dir <- '/storage/data/climate/observations/gridded/ANUSPLIN/ANUSPLIN_300ARCSEC/anusplin_tasmax_split/'
+###write.dir <- '/storage/data/climate/observations/gridded/ANUSPLIN/ANUSPLIN_300ARCSEC/'
 
 
-work <- paste0('rsync -av --progress /storage/data/climate/downscale/BCCAQ2/BCCI/',bccifile,' ',tmp.dir)
-system(work)
-Sys.sleep(5)
+for (run in runs) {
+   bccifile <- paste0(var.name,'_BCCI_day_',gcm,'_North_America_historical+',
+                      scenario,'_',run,'_gn_19500101-21001231.nc')
+   work <- paste0('rsync -av --progress /storage/data/climate/downscale/BCCAQ2/BCCI/',bccifile,' ',tmp.dir)
+###   work <- paste0('rsync -av --progress /storage/data/climate/observations/gridded/ANUSPLIN/ANUSPLIN_300ARCSEC/',bccifile,' ',tmp.dir)
+   system(work)
+   Sys.sleep(5)
 
-split_apart_bcci_file(var.name,gcm,bccifile,
-                      tmp.dir,write.dir)
-
+   print(bccifile)
+   split_apart_bcci_file(var.name,gcm,bccifile,
+                         tmp.dir,write.dir)
+}
 }
 
 

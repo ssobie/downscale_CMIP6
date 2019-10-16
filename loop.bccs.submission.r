@@ -50,9 +50,9 @@ scenario <- 'ssp585'
 
 ##run.list <- c('r1i1p2f1','r2i1p2f1','r3i1p2f1','r4i1p2f1','r5i1p2f1',
 ##              'r6i1p2f1','r7i1p2f1','r8i1p2f1','r9i1p2f1','r10i1p2f1')
-run.list <- 'r1i1p2f1'### c('r4i1p2f1','r5i1p2f1',
+run.list <- c('r1i1p2f1','r2i1p2f1') ### c('r4i1p2f1','r5i1p2f1',
               ###'r6i1p2f1','r7i1p2f1','r8i1p2f1','r9i1p2f1','r10i1p2f1')
-var.list <- c('pr','tasmin') ##'tasmax',
+var.list <- 'pr' ##'tasmax',
 
 ##---------------------------------------------------------------------------
 

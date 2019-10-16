@@ -46,8 +46,7 @@ time_split_of_bccaqv2_files <- function(bccaq2.file,tmp.dir,ec.dir) {
       tmp.file <- paste0('TIME_SUB_',yst,'-',yen,'.nc')
       work <- paste('cdo seldate,',yst,'-01-01T00:00:00,',yen,'-12-31T23:59:59 ',tmp.dir,bccaq2.file,' ',tmp.dir,tmp.file,sep='')
       print(work)
-      browser()
-      ##system(work)
+      system(work)
 
       tnc <- nc_open(paste0(tmp.dir,tmp.file),write=TRUE)
       tmp.time <- time_series_from_nc(tnc) 
@@ -55,11 +54,12 @@ time_split_of_bccaqv2_files <- function(bccaq2.file,tmp.dir,ec.dir) {
       nc_close(tnc)
 
       sub.time.file <- gsub(pattern='[0-9]{8}-[0-9]{8}',
-                       replacement=paste0(format(tmp.time$tmin,'%Y%m%d'),'-',format(tmp.time$tmax,'%Y%m%d')),bccaq2.file)
+                       replacement=paste0(tmp.time$tmin,'-',tmp.time$tmax),bccaq2.file)
 
       file.rename(from=paste0(tmp.dir,tmp.file),to=paste0(tmp.dir,sub.time.file))
       file.copy(from=paste0(tmp.dir,sub.time.file),to=ec.dir,overwrite=TRUE)
       file.remove(from=paste0(tmp.dir,sub.time.file))
+   }
 }
 
 
@@ -151,10 +151,11 @@ get_scaling <- function(var.name) {
 
 ##------------------------------------------------------------
 
-pack_data_for_insertion <- function(data,var.name)
+pack_data_for_insertion <- function(input,var.name) {
 
   scaling <- get_scaling(var.name)
-  rv <- round((data - scaling$offset) / scaling$scale)
+  rv <- round((input - scaling$offset) / scaling$scale)
+  rm(input)
   return(rv)
 
 }
@@ -177,21 +178,28 @@ insert_split_file_data <- function(var.name,write.nc,tmp.dir,split.dir) {
      
       split.file <- list.files(path=split.dir, pattern=paste0(var.name,'_L',sprintf('%02d',i),'_',sprintf('%02d',lat.st)))
       print(split.file)
-
+      
       ###file.copy(from=paste0(split.dir,'/',split.file),to=tmp.dir,overwrite=TRUE)
       Sys.sleep(5)
+
       split.nc <- nc_open(paste0(split.dir,split.file))
       ntime <- length(ncvar_get(split.nc,'time'))
       nlon <- length(ncvar_get(split.nc,'lon'))
-      split.sub <- ncvar_get(split.nc,var.name)
-      split.sub[is.nan(split.sub)] <- NA
-      ##Pack data prior to insertion
-      split.insert <- pack_data_for_insertion(split.sub,var.name)
-      ncvar_put(write.nc,var.name,split.sub,start=c(1,ix.st,1),count=c(nlon,ix.cnt,ntime))
+      nlat <- length(ncvar_get(split.nc,'lat'))
+      split.insert <- array(NA,c(nlon,nlat,ntime))
+      for (j in 1:nlat) {      
+         split.sub <- ncvar_get(split.nc,var.name,start=c(1,j,1),count=c(-1,1,-1))
+         split.sub[is.nan(split.sub)] <- NA
+         ##Pack data prior to insertion
+         split.insert[,j,] <- pack_data_for_insertion(split.sub,var.name)
+         rm(split.sub)
+      }
+      ncvar_put(write.nc,var.name,split.insert,start=c(1,ix.st,1),count=c(nlon,ix.cnt,ntime))
+      rm(split.insert)
       nc_close(split.nc)
-      rm(split.sub)
       file.remove(paste0(split.dir,split.file))
       print('Copied back and cleaned up') 
+      gc()
    }
 }
 
@@ -199,17 +207,18 @@ insert_split_file_data <- function(var.name,write.nc,tmp.dir,split.dir) {
 
 ##************************************************************
 
-##args <- commandArgs(trailingOnly=TRUE)
-##for(i in 1:length(args)){
-##    eval(parse(text=args[[i]]))
-##}
+args <- commandArgs(trailingOnly=TRUE)
+for(i in 1:length(args)){
+    eval(parse(text=args[[i]]))
+}
 
-varname <- 'tasmax'
-gcm <- 'CanESM5'
-run <- 'r1i1p2f1'
-scenario <- 'ssp585'
+##varname <- 'tasmax'
+##gcm <- 'CanESM5'
+##run <- 'r2i1p2f1'
+##scenario <- 'ssp585'
+##tmpdir <- '/local_temp/ssobie/ds_assembly/'
+
 var.name <- varname
-
 gcm.dir <- paste0('/storage/data/climate/CMIP6/assembled/',gcm,'/north_america/')
 gcm.file <- paste0(varname,'_day_',gcm,'_North_America_historical+',scenario,'_',run,'_gn_19500101-21001231.nc')
 
@@ -229,8 +238,7 @@ if (!file.exists(ec.dir)) {
 obs.dir <- '/storage/data/climate/observations/gridded/ANUSPLIN/ANUSPLIN_300ARCSEC/'
 obs.file <- 'anusplin_template_one.nc'
 
-tmpdir <- '/local_temp/ssobie/ds_assembly/'
-tmp.dir <- paste0(tmpdir,'/combine_',gcm,'_',varname,'_',run,'_',scenario,'_tmp')
+tmp.dir <- paste0(tmpdir,'combine_',gcm,'_',varname,'_',run,'_',scenario,'_tmp/')
 if (!file.exists(tmp.dir)) {
   dir.create(tmp.dir,recursive=T)
 }
@@ -243,14 +251,15 @@ file.copy(from=ds.dir,to=tmp.dir,recursive=TRUE)
 print('Done copying DS directory')
 print('Done Copying')
 
-split.dir <- paste0(tmp.dir,gcm,'_split/')
+split.dir <- paste0(tmp.dir,'ds_',varname,'_',gcm,'_',run,'_',scenario,'_split15/')
 
 ##-----------------------------------------------
 
 print('Making File') 
+
 bccaqv2.file <- make_bccaqv2_file(var.name=varname,gcm=gcm,run=run,scenario=scenario,
-                             gcm.file=gcm.file,obs.file=obs.file,                              
-                             tmp.dir=tmp.dir)
+                                  gcm.file=gcm.file,obs.file=obs.file,                              
+                                  tmp.dir=tmp.dir)
 file.remove(paste0(tmp.dir,gcm.file))
 file.remove(paste0(tmp.dir,obs.file))
 
@@ -264,6 +273,8 @@ file.copy(from=paste0(tmp.dir,bccaqv2.file$file),to=write.dir,overwrite=TRUE)
 ##Split the file by years (5-Years?) to make the transfer 
 ##possible for EC
 ##-----------------------------------------------
+
+##bccaqv2.file <- list(file="tasmax_day_BCCAQv2+ANUSPLIN300_CanESM5_historical+ssp585_r2i1p2f1_gn_19500101-21001231.nc")
 
 time_split_of_bccaqv2_files(bccaqv2.file$file,tmp.dir,ec.dir)
 

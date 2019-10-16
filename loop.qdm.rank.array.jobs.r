@@ -36,7 +36,6 @@ submit_qdm_rank_job <- function(var.name,gcm,run,scenario,type,
 
 ##---------------------------------------------------------------------------
 
-obsdir <- '/storage/data/climate/observations/gridded/ANUSPLIN/ANUSPLIN_300ARCSEC/anusplin_tasmax_split/'
 bccadir <- '/storage/data/climate/downscale/BCCAQ2/BCCA/'
 
 
@@ -45,9 +44,10 @@ bccadir <- '/storage/data/climate/downscale/BCCAQ2/BCCA/'
 gcm.list <- 'CanESM5'
 scenario <- 'ssp585'
 ## ##,
-run.list <- c('r9i1p2f1') ##,'r2i1p2f1')##,'r3i1p2f1','r4i1p2f1','r5i1p2f1',
-##              'r6i1p2f1','r7i1p2f1','r8i1p2f1','r9i1p2f1','r10i1p2f1')
-var.list <- 'tasmax'
+run.list <- c('r3i1p2f1','r4i1p2f1','r5i1p2f1','r6i1p2f1','r7i1p2f1','r8i1p2f1','r9i1p2f1')
+##,'r7i1p2f1','r8i1p2f1') ##,
+##              'r10i1p2f1')
+var.list <- 'tasmin'
 
 ##---------------------------------------------------------------------------
 
@@ -56,6 +56,7 @@ qdm.rank.template <- "/storage/home/ssobie/code/repos/downscale_CMIP6/template.s
 
 
 for (var.name in var.list) {
+   obsdir <- paste0('/storage/data/climate/observations/gridded/ANUSPLIN/ANUSPLIN_300ARCSEC/anusplin_',var.name,'_split/')
    obs.file <- list.files(path=obsdir,pattern=var.name)
    for (gcm in gcm.list) {
       for (run in run.list) {              

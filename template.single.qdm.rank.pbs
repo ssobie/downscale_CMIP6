@@ -1,0 +1,31 @@
+#!/bin/bash
+#PBS -l walltime=24:00:00
+#PBS -l nodes=1:ppn=1
+#PBS -l pmem=5000Mb
+#PBS -d /storage/home/ssobie/code/repos/downscale_CMIP6/
+#PBS -o output=./out_files/gcm_bcci_var.out
+#PBS -e error=./out_files/gcm_bcci_var.err
+#PBS -N jobname
+
+cd /storage/home/ssobie/code/repos/downscale_CMIP6/
+echo "Current working directory is `pwd`"
+
+gcm="GCM"
+run="run"
+scenario="scenario"
+index="index"
+
+varname="var"
+obsdir="DIR"
+bccidir="DIR"
+bccadir="DIR"
+bccafile="BCCA"
+writedir="DIR"
+
+obsfile="OBS"
+bccifile="BCCI"
+
+echo $obsfile
+echo $bccifile
+
+R CMD BATCH --no-restore --no-save "--args tmpdir='$TMPDIR' varname='$varname' gcm='$gcm' run='$run' scenario='$scenario' obsfile='$obsfile' obsdir='$obsdir' bccidir='$bccidir' bccifile='$bccifile' bccadir='$bccadir' bccafile='$bccafile' writedir='$writedir'" qdm.and.rank.r "./out_files/${gcm}.${varname}.${scenario}.${run}.qdm.and.rank.${index}.out"
