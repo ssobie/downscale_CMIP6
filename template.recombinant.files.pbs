@@ -3,17 +3,17 @@
 #PBS -l nodes=1:ppn=2
 #PBS -l pmem=10000Mb
 #PBS -d /storage/home/ssobie/code/repos/downscale_CMIP6/
-#PBS -o ./out_files/CanESM5-tasmax-r8i1p2f1-comb.out
-#PBS -e ./out_files/CanESM5-tasmax-r8i1p2f1-comb.err
-#PBS -N comb.can.r8i
+#PBS -o ./out_files/comb_var.out
+#PBS -e ./out_files/comb_var.err
+#PBS -N jobname
 
 
 cd /storage/home/ssobie/code/repos/downscale_CMIP6/
 echo "Current working directory is `pwd`"
 
-gcm="CanESM5"
-run="r8i1p2f1"
-scenario="ssp126"
-varname="tasmax"
+gcm="GCM"
+run="run"
+scenario="scenario"
+varname="var"
 
 R CMD BATCH --no-save --no-restore "--args tmpdir='$TMPDIR' varname='$varname' gcm='$gcm' run='$run' scenario='$scenario'" combine.bccaqv2.raw.into.single.file.r "./out_files/${gcm}.${varname}.${scenario}.${run}.combine.out"

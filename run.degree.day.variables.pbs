@@ -1,0 +1,22 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=2
+#PBS -l pmem=5000mb
+#PBS -l walltime=12:00:00
+#PBS -d /storage/home/ssobie/code/repos/downscale_CMIP6/
+#PBS -o /storage/home/ssobie/code/repos/downscale_CMIP6/dd.stdout.log
+#PBS -e /storage/home/ssobie/code/repos/downscale_CMIP6/dd.stderr.log 
+
+cd /storage/home/ssobie/code/repos/downscale_CMIP6/
+echo "Current working directory is `pwd`"
+
+module load R
+module load netcdf-bin
+module load nco-bin
+
+##gcm='CanESM5'
+##scenario='ssp585'
+##run='r1i1p2f1'
+##type='degree_days'
+
+nohup R CMD BATCH --no-save --no-restore "--args tmpdir='$TMPDIR' gcm='$gcm' scenario='$scenario' run='$run' type='$type'" degree.day.variables.calculation.r "./out_files/${gcm}.${scenario}.${run}.${type}.degree.days.out"
+

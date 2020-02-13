@@ -10,8 +10,8 @@ submit_bccs_job <- function(var.name,gcm,run,scenario,type,
 
       ##BCCS
       ##Output located at line 10
-      bccs.array[6] <- paste0("#PBS -o output=./out_files/",gcm,"-",var.name,"-",run,"-",type,".out")
-      bccs.array[7] <- paste0("#PBS -e error=./out_files/",gcm,"-",var.name,"-",run,"-",type,".err")
+      bccs.array[6] <- paste0("#PBS -o ./out_files/",gcm,"-",var.name,"-",run,"-",type,".out")
+      bccs.array[7] <- paste0("#PBS -e ./out_files/",gcm,"-",var.name,"-",run,"-",type,".err")
       bccs.array[8] <- paste0("#PBS -N ",type,".",tolower(substr(gcm,1,3)),".",substr(run,1,3))
 
       bccs.array[14] <- paste0('gcm="',gcm,'"')
@@ -44,13 +44,13 @@ writedir <- '/storage/data/climate/downscale/BCCAQ2/'
 ##---------------------------------------------------------------------------
 
 gcm.list <- 'CanESM5'
-scenario <- 'ssp585'
+scenario <- 'ssp245'
 ## ##)##,
 
 
 ##run.list <- c('r1i1p2f1','r2i1p2f1','r3i1p2f1','r4i1p2f1','r5i1p2f1',
 ##              'r6i1p2f1','r7i1p2f1','r8i1p2f1','r9i1p2f1','r10i1p2f1')
-run.list <- c('r1i1p2f1','r2i1p2f1') ### c('r4i1p2f1','r5i1p2f1',
+run.list <- c('r6i1p2f1','r7i1p2f1') ### c('r4i1p2f1','r5i1p2f1',
               ###'r6i1p2f1','r7i1p2f1','r8i1p2f1','r9i1p2f1','r10i1p2f1')
 var.list <- 'pr' ##'tasmax',
 

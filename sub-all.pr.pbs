@@ -1,0 +1,27 @@
+#!/bin/bash
+#PBS -l walltime=24:00:00
+#PBS -l nodes=1:ppn=2
+#PBS -l pmem=10000Mb
+#PBS -d /storage/home/ssobie/code/repos/downscale_CMIP6/
+#PBS -o output=./out_files/CanESM5-pr-r1i1p2f1-all.out
+#PBS -e error=./out_files/CanESM5-pr-r1i1p2f1-all.err
+#PBS -N all.can.r1i
+
+
+cd /storage/home/ssobie/code/repos/downscale_CMIP6/
+echo "Current working directory is `pwd`"
+
+gcm="CanESM5"
+run="r1i1p2f1"
+scenario="ssp585"
+
+varname="pr"
+gcmfile="pr_day_CanESM5_North_America_historical+ssp585_r1i1p2f1_gn_19500101-21001231.nc"
+gcmdir="/storage/data/climate/CMIP6/assembled/CanESM5/north_america/"
+obsfile="anusplin_pr_final.nc"
+obsdir="/storage/data/climate/observations/gridded/ANUSPLIN/ANUSPLIN_300ARCSEC/"
+bccifile="pr_BCCI_day_CanESM5_North_America_historical+ssp585_r1i1p2f1_gn_19500101-21001231.nc"
+bccafile="CanESM5.pr.ssp585.r1i1p2f1.Canada.analogues.RData"
+writedir="/storage/data/climate/downscale/BCCAQ2/"
+
+R CMD BATCH --no-save --no-restore "--args tmpdir='$TMPDIR' varname='$varname' gcm='$gcm' run='$run' scenario='$scenario' gcmfile='$gcmfile' gcmdir='$gcmdir' obsfile='$obsfile' obsdir='$obsdir' bccifile='$bccifile' bccafile='$bccafile' writedir='$writedir'" bcci.divide.qdm.and.rank.r "./out_files/${gcm}.${varname}.${scenario}.${run}.all.out"

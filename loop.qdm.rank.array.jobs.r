@@ -7,12 +7,12 @@ submit_qdm_rank_job <- function(var.name,gcm,run,scenario,type,
                                 bccs.template) {     
 
       bccs.array <- readLines(bccs.template)
-
+      var.sub <- paste0(c(substr(var.name,1,1),substr(var.name,nchar(var.name),nchar(var.name))),collapse='')
       ##BCCS
       ##Output located at line 10
-      bccs.array[7] <- paste0("#PBS -o output=./",gcm,"-",var.name,"-",run,"-",type,".out")
-      bccs.array[8] <- paste0("#PBS -e error=./",gcm,"-",var.name,"-",run,"-",type,".err")
-      bccs.array[9] <- paste0("#PBS -N ",type,".",tolower(substr(gcm,1,3)),".",substr(run,1,3))
+      bccs.array[7] <- paste0("#PBS -o ./out_files/",gcm,"-",var.name,"-",run,"-",type,".out")
+      bccs.array[8] <- paste0("#PBS -e ./out_files/",gcm,"-",var.name,"-",run,"-",type,".err")
+      bccs.array[9] <- paste0("#PBS -N ",substr(type,1,2),".",var.sub,'.',tolower(substr(gcm,1,3)),".",substr(run,1,3))
 
       bccs.array[14] <- paste0('gcm="',gcm,'"')
       bccs.array[15] <- paste0('run="',run,'"')
@@ -42,12 +42,12 @@ bccadir <- '/storage/data/climate/downscale/BCCAQ2/BCCA/'
 ##---------------------------------------------------------------------------
 
 gcm.list <- 'CanESM5'
-scenario <- 'ssp585'
+scenario <- 'ssp126'
 ## ##,
-run.list <- c('r3i1p2f1','r4i1p2f1','r5i1p2f1','r6i1p2f1','r7i1p2f1','r8i1p2f1','r9i1p2f1')
-##,'r7i1p2f1','r8i1p2f1') ##,
+run.list <- 'r8i1p2f1'  ##,'r7i1p2f1','r8i1p2f1') ##,'r5i1p2f1','r7i1p2f1','r8i1p2f1','r9i1p2f1',
 ##              'r10i1p2f1')
-var.list <- 'tasmin'
+##              
+var.list <- 'tasmax'
 
 ##---------------------------------------------------------------------------
 

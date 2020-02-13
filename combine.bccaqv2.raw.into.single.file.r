@@ -153,6 +153,10 @@ get_scaling <- function(var.name) {
 
 pack_data_for_insertion <- function(input,var.name) {
 
+  if (var.name == 'pr') {
+     input[input >= 1000] <- 990
+  }
+
   scaling <- get_scaling(var.name)
   rv <- round((input - scaling$offset) / scaling$scale)
   rm(input)

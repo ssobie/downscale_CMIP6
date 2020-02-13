@@ -151,39 +151,38 @@ split_apart_bcci_file <- function(var.name,gcm,bccifile,
 
 
 ##Testing
-if (1==1) {
-scenario <- 'ssp585'
-##run <- 'r7i1p2f1'
-##c('r3i1p2f1','r4i1p2f1','r5i1p2f1','r6i1p2f1',
-runs <- c('r1i1p2f1','r2i1p2f1','r6i1p2f1') ##,'r8i1p2f1','r9i1p2f1','r10i1p2f1')
+if (1==0) {
 
-##If the past two runs complete and delete the tmp files correctly, set this as a loop to run
-##over all the outstanding files.
+  scenario <- 'ssp585'
+  ##run <- 'r7i1p2f1'
+  runs <- c('r3i1p2f1','r4i1p2f1','r5i1p2f1','r6i1p2f1','r8i1p2f1','r9i1p2f1','r10i1p2f1')
 
-var.name <- 'tasmin'
-gcm <- 'CanESM5'
-###gcm <- 'ANUSPLIN'
+  ##If the past two runs complete and delete the tmp files correctly, set this as a loop to run
+  ##over all the outstanding files.
 
-###bccifile <- 'anusplin_pr_final.nc'
-tmp.dir <- '/local_temp/ssobie/bcci_split/'
-###tmp.dir <- '/local_temp/ssobie/obs_split/'
-write.dir <- '/storage/data/climate/downscale/BCCAQ2/BCCI/'
-###write.dir <- '/storage/data/climate/observations/gridded/ANUSPLIN/ANUSPLIN_300ARCSEC/'
+  var.name <- 'pr'
+  gcm <- 'CanESM5'
+  ###gcm <- 'ANUSPLIN'
 
+  ###bccifile <- 'anusplin_pr_final.nc'
+  tmp.dir <- '/local_temp/ssobie/bcci_split/'
+  ###tmp.dir <- '/local_temp/ssobie/obs_split/'
+  write.dir <- '/storage/data/climate/downscale/BCCAQ2/BCCI/'
+  ###write.dir <- '/storage/data/climate/observations/gridded/ANUSPLIN/ANUSPLIN_300ARCSEC/'
 
-for (run in runs) {
-   bccifile <- paste0(var.name,'_BCCI_day_',gcm,'_North_America_historical+',
-                      scenario,'_',run,'_gn_19500101-21001231.nc')
-   work <- paste0('rsync -av --progress /storage/data/climate/downscale/BCCAQ2/BCCI/',bccifile,' ',tmp.dir)
-###   work <- paste0('rsync -av --progress /storage/data/climate/observations/gridded/ANUSPLIN/ANUSPLIN_300ARCSEC/',bccifile,' ',tmp.dir)
-   system(work)
-   Sys.sleep(5)
-
-   print(bccifile)
-   split_apart_bcci_file(var.name,gcm,bccifile,
+  for (run in runs) {
+      bccifile <- paste0(var.name,'_BCCI_day_',gcm,'_North_America_historical+',
+                        scenario,'_',run,'_gn_19500101-21001231.nc')
+     work <- paste0('rsync -av --progress /storage/data/climate/downscale/BCCAQ2/BCCI/',bccifile,' ',tmp.dir)
+  ###   work <- paste0('rsync -av --progress /storage/data/climate/observations/gridded/ANUSPLIN/ANUSPLIN_300ARCSEC/',bccifile,' ',tmp.dir)
+     system(work)
+     Sys.sleep(5)
+  
+      print(bccifile)
+     split_apart_bcci_file(var.name,gcm,bccifile,
                          tmp.dir,write.dir)
-}
-}
+  } 
+  }
 
 
 print('Elapsed time')

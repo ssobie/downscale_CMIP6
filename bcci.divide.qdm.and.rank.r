@@ -32,35 +32,43 @@ print(gcmdir)
 print(gcmfile)
 
 file.copy(from=paste0(gcmdir,gcmfile),to=tmpdir,overwrite=TRUE)
-file.copy(from=paste0(obsdir,obsfile),to=tmpdir,overwrite=TRUE)
-file.copy(from=paste0(bccadir,bccafile),to=tmpdir,overwrite=TRUE)
+#file.copy(from=paste0(obsdir,obsfile),to=tmpdir,overwrite=TRUE)
+file.copy(from=paste0(writedir,'BCCA/',bccafile),to=tmpdir,overwrite=TRUE)
 
+bccadir <- paste0(writedir,'BCCA/')
+
+obs.split.dir <- paste0(obsdir,'anusplin_',varname,'_split/')
+obs.splits <- list.files(path=obs.split.dir)
 gcm.tmp <- paste0(tmpdir,'/',gcmfile)
 obs.tmp <- paste0(tmpdir,'/',obsfile)
 bcci.tmp <- paste0(tmpdir,'/',bccifile)
 
-ci.netcdf.wrapper(gcm.tmp, obs.tmp, bcci.tmp, varname)
+###ci.netcdf.wrapper(gcm.tmp, obs.tmp, bcci.tmp, varname)
 ##file.copy(from=bcci.tmp,to=writedir,overwrite=TRUE)
 print('BCCI Complete')
 
 print('Beginning BCCI Split')
 splits <- rep(1:34,each=15)
-splitdir <- paste0(writedir,'BCCI/varname,'_',gcm,'_',run,'_',scenario,'_split15/')
+splitdir <- paste0(writedir,'BCCI/',varname,'_',gcm,'_',run,'_',scenario,'_split15/')
 dir.create(splitdir,recursive=TRUE)
 dsdir <- paste0(writedir,'raw_downscaled/ds_',varname,'_',gcm,'_',run,'_',scenario,'_split15/')
 dir.create(dsdir,recursive=TRUE)
 
-for (i in seq_along(unique(splits))) {
-   split.info <- split_apart_bcci_file(varname,gcm,bccifile,tmpdir)
-   file.copy(from=paste0(split.info$dir,split.info$file),to=splitdir,overwrite=TRUE)
+for (i in 1:1) { ###seq_along(unique(splits))) {
+   ###split.info <- split_apart_bcci_file(varname,gcm,bccifile,tmpdir)
+   ###file.copy(from=paste0(split.info$dir,split.info$file),to=splitdir,overwrite=TRUE) ##To copy the file back
+         
    print('Beginning QDM and Rank on split file')
-   print(split.info$file)   
-   bcci.split <- split.info$file
-
+   ###print(split.info$file)   
+   bcci.split <- list.files(path=splitdir,pattern=varname)[i] ###split.info$file
+   print(bcci.split)
+   obs.split <- obs.splits[i]
+   print(obs.split)
+   
    ##Send to a job template and submit
-   submit_one_qdm_rank_job <- function(var.name,gcm,run,scenario,i,
-                                       obsfile,bcci.split,bccafile,
-                                       obsdir,splitdir,bccadir,dsdir)
+   submit_one_qdm_rank_job(varname,gcm,run,scenario,i,
+                           obs.split,bcci.split,bccafile,
+                           obs.split.dir,splitdir,bccadir,dsdir)
 
 }
 

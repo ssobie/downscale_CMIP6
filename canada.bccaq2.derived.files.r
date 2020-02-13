@@ -99,8 +99,8 @@ get_climdex_info <- function(climdex.name) {
                         climdex.r20mm=c('r20mmETCCDI','Ann','days'),
                         climdex.cdd=c('cddETCCDI','Ann','days'),
                         climdex.cwd=c('cwdETCCDI','Ann','days'),
-                        climdex.r95ptot=c('r95pETCCDI','Ann','mm'),
-                        climdex.r99ptot=c('r99pETCCDI','Ann','mm'),
+                        climdex.r95p=c('r95pETCCDI','Ann','mm'),
+                        climdex.r99p=c('r99pETCCDI','Ann','mm'),
                         climdex.prcptot=c('prcptotETCCDI','Ann','mm'),
                         climdex.r95days=c('r95daysETCCDI','Ann','days'),
                         climdex.r99days=c('r99daysETCCDI','Ann','days'),
@@ -184,13 +184,12 @@ create_base_files <- function(var.name,var.units,long.name,
 
 ##------------------------------------------------------------------------
 
-make_degree_day_files <- function(gcm,scenario,run,
+make_degree_day_files <- function(degree.names,gcm,scenario,run,
                                   tasmax.tmp,obs.tmp,gcm.tmp,
                                   data.dir,write.dir,tmp.dir) {
   
-  degree.names <- c('cdd','fdd','gdd','hdd')
-  dd.long.names <- c('Cooling Degree Days','Freezing Degree Days',
-  		     	  'Growing Degree Days','Heating Degree Days')
+  ##degree.names <- c('cdd','fdd','gdd','hdd')
+
   freq <- 'Ann'
 
   out.dir <- paste(tmp.dir,'degree_days/',sep='')
@@ -199,13 +198,17 @@ make_degree_day_files <- function(gcm,scenario,run,
   }
   time.info <- time_component(tasmax.tmp,freq)
   space.info <- space_component(obs.tmp)  
-
+  dd.files <- rep('A',length(degree.names))
   gcm.nc <- nc_open(gcm.tmp)
   for (d in seq_along(degree.names)) {
       degree.name <- degree.names[d]
-      long.name <- dd.long.names[d]
+      long.name <- switch(degree.name,
+                          cdd='Cooling Degree Days',
+                          fdd='Freezing Degree Days',
+  		     	  gdd='Growing Degree Days',
+                          hdd='Heating Degree Days')
 
-      write.dd.name <- paste0(degree.name,'_annual_BCCAQ2v2+ANUSPLIN300_',gcm,'_historical+',scenario,'_',run,'_',time.info$interval,'.nc')    
+      dd.files[d] <- write.dd.name <- paste0(degree.name,'_annual_BCCAQ2v2+ANUSPLIN300_',gcm,'_historical+',scenario,'_',run,'_',time.info$interval,'.nc')    
       create_base_files(degree.name,'degree_days',long.name,
                         gcm,scenario,run,gcm.nc,
                         write.dd.name,
@@ -213,11 +216,8 @@ make_degree_day_files <- function(gcm,scenario,run,
                         tmp.dir,out.dir)
   }
   nc_close(gcm.nc)
-  file.copy(from=out.dir,to=write.dir,recursive=TRUE,overwrite=TRUE)
-  files.rm <- list.files(path=out.dir,full.name=TRUE)
-  file.remove(files.rm)
-  file.remove(out.dir)
 
+  return(dd.files)
 }
 
 ##-----------------------------------------------------------------------
@@ -311,7 +311,7 @@ make_quantile_file <- function(var.name,gcm,scenario,run,pctl,
 ##-----------------------------------------------------------------------
 ##Annual Averages/Sums
 
-make_annual_files <- function(var.name,gcm,scenario,run,
+make_annual_file <- function(var.name,gcm,scenario,run,
                                ds.tmp,obs.tmp,gcm.tmp,
                                data.dir,out.dir,tmp.dir) {
   gcm.nc <- nc_open(gcm.tmp) 
@@ -350,6 +350,8 @@ make_annual_files <- function(var.name,gcm,scenario,run,
 
 }
 
+##-----------------------------------------------------------------------
+##Seasonal Averages/Sums
 
 make_seasonal_file <- function(var.name,gcm,scenario,run,
                                ds.tmp,obs.tmp,gcm.tmp,
@@ -390,6 +392,8 @@ make_seasonal_file <- function(var.name,gcm,scenario,run,
 
 }
 
+##-----------------------------------------------------------------------
+##Monthly Averages/Sums
 
 make_monthly_file <- function(var.name,gcm,scenario,run,
                               ds.tmp,obs.tmp,gcm.tmp,
@@ -432,23 +436,11 @@ make_monthly_file <- function(var.name,gcm,scenario,run,
 ##-----------------------------------------------------------------------
 ##CLIMDEX
 
-make_climdex_files <- function(gcm,scenario,run,
-                               ds.tmp,obs.tmp,gcm.tmp,
-                               data.dir,write.dir,tmp.dir) {
+make_climdex_file <- function(var.name,gcm,scenario,run,
+                              ds.tmp,obs.tmp,gcm.tmp,
+                              data.dir,write.dir,tmp.dir) {
 
-  var.names <- c('climdex.fd','climdex.su','climdex.su30','climdex.id',
-                 'climdex.tr','climdex.gsl','climdex.txx',
-                 'climdex.tnx','climdex.txn','climdex.tnn',
-                 'climdex.tn10p','climdex.tx10p','climdex.tn90p',
-                 'climdex.tx90p','climdex.wsdi','climdex.csdi',
-                 'climdex.dtr','climdex.rx1day','climdex.rx2day',
-                 'climdex.rx5day','climdex.sdii','climdex.r10mm',
-                 'climdex.r20mm','climdex.cdd','climdex.cwd',
-                 'climdex.r95ptot','climdex.r99ptot','climdex.prcptot',
-                 'climdex.r95days','climdex.r99days','climdex.r95store',
-                 'climdex.r99store')
   gcm.nc <- nc_open(gcm.tmp) 
-  out.dir <- paste(tmp.dir,'climdex/',sep='')
   if (!file.exists(out.dir)) {
     dir.create(out.dir,recursive=TRUE)
   }
@@ -456,119 +448,26 @@ make_climdex_files <- function(gcm,scenario,run,
      dir.create(paste0(write.dir,'climdex/'),recursive=TRUE)
   }   
 
-  for (v in seq_along(var.names)) {
-      var.name <- var.names[v]
-      print(var.name)
-      climdex.info <- get_climdex_info(var.name)
-      climdex.var <- climdex.info[1]
-      climdex.calendar <- climdex.info[2]
-      climdex.units <- climdex.info[3]
+  print(var.name)
+  climdex.info <- get_climdex_info(paste0('climdex.',var.name))
+  climdex.var <- climdex.info[1]
+  climdex.calendar <- climdex.info[2]
+  climdex.units <- climdex.info[3]
 
-      time.info <- time_component(ds.tmp,freq=climdex.calendar)
-      space.info <- space_component(obs.tmp)  
+  time.info <- time_component(ds.tmp,freq=climdex.calendar)
+  space.info <- space_component(obs.tmp)  
 
-      var.units <- climdex.units
-      write.clim.name <- paste0(climdex.var,'_',tolower(climdex.calendar),'_BCCAQ2v2+ANUSPLIN300_',gcm,
-                        '_historical+',scenario,'_',run,'_',time.info$interval,'.nc')    
+  var.units <- climdex.units
+  write.clim.name <- paste0(climdex.var,'_',tolower(climdex.calendar),'_BCCAQ2v2+ANUSPLIN300_',gcm,
+                    '_historical+',scenario,'_',run,'_',time.info$interval,'.nc')    
 
-      create_base_files(climdex.var,var.units,toupper(climdex.var),
-                        gcm,scenario,run,gcm.nc,
-                        write.clim.name,
-                        time.info,space.info,		
-                        tmp.dir,out.dir)
-      file.copy(from=paste0(out.dir,write.clim.name),to=paste0(write.dir,'climdex/'),
-                overwrite=TRUE)
-
-  }
-
+  create_base_files(climdex.var,var.units,toupper(climdex.var),
+                    gcm,scenario,run,gcm.nc,
+                    write.clim.name,
+                    time.info,space.info,		
+                    tmp.dir,out.dir)
   nc_close(gcm.nc)
-  files.rm <- list.files(path=out.dir,full.name=TRUE)
-  file.remove(files.rm)
-  file.remove(out.dir)
-
+  return(write.clim.name)
 }
 
-
-
-##****************************************************************************************
-##****************************************************************************************
-
-##args <- commandArgs(trailingOnly=TRUE)
-##for(i in 1:length(args)){
-##    eval(parse(text=args[[i]]))
-##}
-tmpdir <- '/local_temp/ssobie/'
-
-gcm <- 'CanESM5'
-scenario <- 'ssp585'
-run <- 'r1i1p2f1'
-tmp.dir <- paste0(tmpdir,'derived_',gcm,'_',run,'_',scenario,'/')
-
-##-----------------------------------------------------------------
-
-base.dir <- '/storage/data/climate/downscale/BCCAQ2/'
-data.dir <- paste0(base.dir,'raw_downscaled/')
-write.dir <- paste0(base.dir,'CMIP6_BCCAQv2/',gcm,'/Derived/')
-if (!file.exists(write.dir))
-  dir.create(write.dir,recursive=TRUE)    
-
-
-
-##Move data to local storage for better I/O
-if (!file.exists(tmp.dir))
-  dir.create(tmp.dir,recursive=TRUE)    
-
-##Transfer template files for derived file creation
-print('Transfer Obs File')
-obs.dir <- '/storage/data/climate/observations/gridded/ANUSPLIN/ANUSPLIN_300ARCSEC/'
-obs.file <- 'anusplin_template_one.nc'
-file.copy(from=paste0(obs.dir,obs.file),to=tmp.dir)
-obs.tmp <- paste0(tmp.dir,obs.file)
-
-gcm.dir <- paste0('/storage/data/climate/CMIP6/assembled/',gcm,'/north_america/')
-gcm.file <- paste0('tasmax_day_',gcm,'_North_America_historical+',scenario,'_',run,'_gn_19500101-21001231.nc')
-file.copy(from=paste0(gcm.dir,gcm.file),to=tmp.dir)
-print('Done copying gcm file')
-gcm.tmp <- paste0(tmp.dir,gcm.file)
-
-
-##------------------------------------------------------------------------------
-##TASMAX
-print('Maximum Temperature Variables')
-
-tasmax.dir <- paste0(data.dir,'ds_tasmax_',gcm,'_',run,'_',scenario,'_split15/')
-tasmax.file <- list.files(path=tasmax.dir,pattern='tasmax')[1]
-tasmax.tmp <- paste0(tmp.dir,'/',tasmax.file)
-file.copy(from=paste0(tasmax.dir,tasmax.file),to=tmp.dir,overwrite=TRUE)
-
-###make_degree_day_files(gcm,scenario,run,
-###                      tasmax.tmp,obs.tmp,gcm.tmp,
-###                      data.dir,write.dir,tmp.dir)
-###
-
-for (var.name in c('pr','tasmax','tasmin')) {
-   make_return_period_file(var.name,gcm,scenario,run,
-                           tasmax.tmp,obs.tmp,gcm.tmp,
-                           data.dir,write.dir,tmp.dir)
-   make_average_files(var.name,gcm,scenario,run,
-                        tasmax.tmp,obs.tmp,gcm.tmp,
-                        data.dir,write.dir,tmp.dir)
-}
-
-for (var.name in c('tasmax','tasmin')) {
-   make_quantile_files(var.name,gcm,scenario,run,
-                           tasmax.tmp,obs.tmp,gcm.tmp,
-                           data.dir,write.dir,tmp.dir)
-}
-
-###make_climdex_files(gcm,scenario,run,
-###                   tasmax.tmp,obs.tmp,gcm.tmp,
-###                   data.dir,write.dir,tmp.dir)
-
-
-file.remove(tasmax.tmp)
-file.remove(obs.tmp)
-file.remove(gcm.tmp)
-
-browser()
 
